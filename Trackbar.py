@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import imutils
 
+############################################### not functioning well #############################################################
 def process():
     while True:
         video = cv2.VideoCapture(0)

@@ -1,33 +1,46 @@
+#This Cropping function is run in a folder and saved after cropped
+#Square/Rectangle form of cropping only.
+
+#Three additional function added
+#Space to save, Continously crop at same page, Retry cropping
+
 import cv2
 import glob
 
 #editable
-read_path = "/home/mp913/Desktop/bOTTLe/Data/Coke/*.jpg"
-save_path = "/home/mp913/Desktop/bOTTLe/Data/"
-save_name = "Coke{}.jpg"
+read_path = "/home/mp913/Desktop/bOTTLe/Data/Others/*.jpg"
+save_path = "/home/mp913/Desktop/bOTTLe/Data/Others/"
+save_name = "Others{}.jpg"
 
 #file reading
-filenames = glob.glob("/home/mp913/Desktop/bOTTLe/Data/*.jpg")
+filenames = glob.glob(read_path)
 filenames.sort()
 images = [cv2.imread(img) for img in filenames]
 total = len(images)
 
 count = 0
 retry_img = False
+same_img = False
 
 for img in images:
-    
+
+
     #loop for retry croping
     while True:
-        
+
         #retry cropping from previous img
         if retry_img == True:
             img = prev_img  #swtiching previous img to newest img
             retry_img = False   #revert back to False for prevent continous loop
             print("Current:",title, "\n")    #debug
 
+        #stay at same image to crop
+        if same_img == True:
+            same_img = False # revert back to False to repeat
+            img = prev_img
 
-        prev_img = img.copy()   #copying for previous
+
+        prev_img = img.copy()   #copying for other usages
 
         ####################################################################################################################
         #Windows Resize
@@ -48,12 +61,14 @@ for img in images:
 
         output = img.copy()     #copying new img to differentiate save img & img with text
         title = save_name.format(count)
-        text = "Press Space to save"
+        text = "Press Space to Save"
         retry_txt = "Press r to Retry"
-        
-        cv2.putText(output, title, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.putText(output, text, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.putText(output, retry_txt, (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        same_txt = "Press s to Crop same image"
+
+        cv2.putText(output, title, (9, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.putText(output, text, (9, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.putText(output, retry_txt, (9, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        cv2.putText(output, same_txt, (9, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         #Windows Resize
         (h, w, d) = output.shape
@@ -61,7 +76,7 @@ for img in images:
         dim = (500, int(h * r))
         output = cv2.resize(output, dim)
 
-        cv2.namedWindow(title)
+        cv2.namedWindow(title, cv2.WINDOW_AUTOSIZE)
         cv2.imshow(title, output)
 
         k = cv2.waitKey(0) & 0xFF
@@ -73,6 +88,13 @@ for img in images:
             retry_img = True
             cv2.destroyWindow("ROI selector")
             count -= 1
+            continue
+        
+        #Stay on same photo
+        if k == ord("s"):
+            same_img = True
+            cv2.imwrite(save_path +title, img)  #save image and continue on same image
+            print(title+" Saved!\n")
             continue
 
         #Save img

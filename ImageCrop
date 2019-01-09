@@ -1,3 +1,5 @@
+#currently stucked at last image verification and retry cropping of last image
+
 import cv2
 import glob
 

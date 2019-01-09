@@ -1,0 +1,94 @@
+import cv2
+import glob
+
+#editable
+read_path = "/home/mp913/Desktop/bOTTLe/Data/*.jpg"
+save_path = "/home/mp913/Desktop/bOTTLe/Data/"
+save_name = "Coke{}.jpg"
+
+#file reading
+filenames = glob.glob(read_path)
+filenames.sort()
+images = [cv2.imread(img) for img in filenames]
+total = len(images)
+
+count = 0
+retry_img = False
+last = True #last image verify
+
+for img in images:
+
+
+    #retry cropping from previous img
+    if retry_img == True:
+        img = prev_img  #swtiching previous img to newest img
+        retry_img = False   #revert back to False for prevent continous loop
+        count -= 1
+        print("Current:",title)    #debug
+        # last = False    #skip last image verify
+
+    #Last image verification
+
+    # if total == count:
+    #     if last == True:
+    #         break
+
+    prev_img = img.copy()   #copying for previous
+
+    ####################################################################################################################
+    #Windows Resize
+    (h, w, d) = img.shape
+    r = 1000.0 / w
+    dim = (1000, int(h * r))
+    img = cv2.resize(img, dim)
+
+    #ROI selector
+    r = cv2.selectROI(img)
+
+    # Crop image
+    img = img[int(r[1]):int(r[1] + r[3]), int(r[0]):int(r[0] + r[2])]
+
+    ####################################################################################################################
+    #Display Copped image
+    count +=1   #count of image
+
+    output = img.copy()     #copying new img to differentiate save img & img with text
+    title = save_name.format(count)
+    text = "Press Enter to save"
+    retry_txt = "Press r to Retry"
+    cv2.putText(output, title, (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    cv2.putText(output, text, (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    cv2.putText(output, retry_txt, (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+    #Windows Resize
+    (h, w, d) = output.shape
+    r = 500.0 / w
+    dim = (500, int(h * r))
+    output = cv2.resize(output, dim)
+
+    cv2.namedWindow(title)
+    cv2.imshow(title, output)
+
+    k = cv2.waitKey(0) & 0xFF
+    cv2.destroyWindow(title)
+
+
+    #Retry Cropping
+    if k == ord("r"):
+        retry_img = True
+        cv2.destroyWindow("ROI selector")
+        print("yes")
+
+    #Save img
+    if retry_img == False:
+        cv2.imwrite(save_path +title, img)
+        print(title+" Saved!\n")
+
+    #exit
+    if k == 27:
+        break
+
+
+
+print("Proceed {} photos".format(count))
+cv2.destroyAllWindows()
